@@ -10,13 +10,11 @@ public class AssignmentsController
 {
     private static List<AssignmentModel> _mockDb = new List<AssignmentModel>();
 
-    public AssignmentsController()
-    {
-        //_mockDb = new List<AssignmentModel>();
-    }
+    public AssignmentsController() { }
     
     //endpoint
-    [HttpPost] //adauga informatii in baza de date
+    //Add information to database
+    [HttpPost]
     public AssignmentResponse Add(AssignmentRequest request)
     {
         var assignment = new AssignmentModel //mapping un request intr-un model
@@ -41,6 +39,7 @@ public class AssignmentsController
     }
     //in terminalul din rider: dotnet watch run
 
+    //Get list of assignments
     [HttpGet]
     public IEnumerable<AssignmentResponse> Get()
     {
@@ -55,17 +54,18 @@ public class AssignmentsController
         ).ToList();
     }
 
+    //Get assignment by id
     [HttpGet("{id}")] //("{id}")route nou pt ca exista deja un httpget si se da un parametru routerului
     public AssignmentResponse Get([FromRoute] string id)
     {
-        var assignment = _mockDb.FirstOrDefault(x => x.Id == id); //returneaza x care verifica daca e egal cu id din parametru
-        if (assignment is null) //daca nu a returnat nimic returneaza null
+        var assignment = _mockDb.FirstOrDefault(x => x.Id == id);
+        if (assignment is null)
         {
             return null;
         }
         
-        //returneaza un raspuns mapat daca nu e null
-        return new AssignmentResponse()
+        //Return mapped response
+        return new AssignmentResponse
         {
             Id = assignment.Id,
             Subject = assignment.Subject,
@@ -73,21 +73,51 @@ public class AssignmentsController
             Description = assignment.Description
         };
     }
-    
-    //TEMA
-    //creati o functie de delete si una de update [httpdelete] si [httppatch]
-    //functia de delete e asemanatoare cu cea de dinainte
-    //cea de update primeste un string si un request nou pt noul update
 
-    [HttpDelete]
-    public void Delete([FromRoute] string id)
+    //Delete assignment
+    [HttpDelete("{id}")]
+    public AssignmentResponse Delete([FromRoute] string id)
     {
         var assignment = _mockDb.FirstOrDefault(x => x.Id == id);
 
-        if (assignment != null)
+        if (assignment == null)
         {
-            _mockDb.Remove(assignment);
+            return null;
         }
         
+        _mockDb.Remove(assignment);
+
+        return new AssignmentResponse
+        {
+            Id = assignment.Id,
+            Subject = assignment.Subject,
+            Description = assignment.Description,
+            Deadline = assignment.Deadline
+        };
+    }
+
+    //Update assignment
+    [HttpPatch("{id}")]
+    public AssignmentResponse Update(string id, AssignmentRequest request)
+    {
+        var assignment = _mockDb.FirstOrDefault(x => x.Id == id);
+
+        if (assignment == null)
+        {
+            return null;
+        }
+
+        assignment.Subject = request.Subject;
+        assignment.Description = request.Description;
+        assignment.Deadline = request.Deadline;
+        assignment.Updated = DateTime.UtcNow;
+        
+        return new AssignmentResponse
+        {
+            Id = assignment.Id,
+            Subject = assignment.Subject,
+            Description = assignment.Description,
+            Deadline = assignment.Deadline
+        };
     }
 }
